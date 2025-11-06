@@ -1,0 +1,41 @@
+# Python bytecode and temp files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Distribution/build folders
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# SQLite database
+db/
+db/*.db
+
+# Data, models, processed output
+data/
+datasets/
+models/embeddings_cache/
+index/
+datasets/processed/
+
+# Jupyter and pytest cache
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# VSCode settings (keep .vscode/ unless you want to ignore all)
+.vscode/*
+!.vscode/settings.json
