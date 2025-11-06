@@ -22,7 +22,6 @@ db/*.db
 
 # Data, models, processed output
 data/
-datasets/
 models/embeddings_cache/
 index/
 datasets/processed/
