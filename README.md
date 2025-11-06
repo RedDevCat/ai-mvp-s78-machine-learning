@@ -1,117 +1,56 @@
-### debian:
-sudo apt-get update
-sudo apt-get install -y \
-  build-essential \
-  libfuzzy-dev \
-  libmagic-dev \
-  libffi-dev \
-  python3-dev \
-  gcc \
-  g++ \
-  libssl-dev \
-  pkg-config \
-  file \
-  libreadline-dev \
-  libsqlite3-dev
+# AI-MVP: Security Risk and Plagiarism Detection using Machine Learning
 
-### pacman:
-sudo pacman -Sy
-sudo pacman -S --needed base-devel gcc gcc-libs ssdeep libmagic python python-pip file
+## Overview
 
-### How to Use and Train Your ML Module
-Get or download datasets (like SARD, Kaggle student code, OWASP vulnerable apps) and save under datasets/.
+AI-MVP is a Python-based Streamlit web application designed to analyze source code for security vulnerabilities, plagiarism risks, and code quality issues.  
+It leverages machine learning models, static code analysis, and code similarity indexing to provide real-time risk assessments of uploaded files.
 
-Label your data with a Python label function, for example:
+## Features
 
-python
-def label_func(text, path):
-    # Example: simplistic labeling by presence of secrets or suspicious keywords
-    if "AWS" in text or "eval(" in text:
-        return 1.0  # unsafe
-    return 0.0  # safe
-Preprocess to CSV for training:
+- **Static Security Analysis**: Detect known patterns and risky code using rule-based and ML-enhanced heuristics.
+- **ML-based Risk Scoring**: Trains a LightGBM model on curated datasets to provide risk scores for uploaded code.
+- **Plagiarism Detection**: Embedded code similarity search with FAISS, enabling detection of copied code fragments.
+- **Document Parsing**: Supports PDFs, DOCX files along with plain code files.
+- **Interactive Web Interface**: Streamlit-powered UI for easy file upload, real-time scanning, model training, and corpus indexing.
 
-bash
-python -c "from utils.train_process import preprocess_dataset; preprocess_dataset('datasets/sard/raw', label_func, 'datasets/processed/sard.csv')"
-Train LightGBM model from CSV:
-
-bash
-python utils/train_model.py datasets/processed/sard.csv
-Start the app and upload files—model will predict risk scores live and output policy flags.
-
-## Other:
-Here are the **step-by-step commands** to process each dataset, train or retrain your model based on the processed data, and general notes for running your project smoothly:
-
-***
-
-### Step 1: Activate your Python environment (if not already active)
-
-```bash
-source .venv/bin/activate   # On Linux/macOS
-# OR
-.venv\Scripts\activate      # On Windows
+## How It Works
+```mermaid
+flowchart TD
+UploadFile[User uploads file] --> Parse[Parse and extract code]
+Parse --> Features[Extract Features: syntax, security, secrets, embeddings]
+Features --> RiskModel[Run LightGBM Risk Model]
+RiskModel --> RiskScore[Output Risk Score and Flags]
+Features --> SimilaritySearch[FAISS Embedding Search]
+SimilaritySearch --> PlagiarismReport[Find similar code/plagiarism]
+RiskScore --> Report[Generate Combined Report]
+PlagiarismReport --> Report
+Report --> UI[Display report in Streamlit UI]
 ```
 
-***
 
-### Step 2: Preprocess each dataset CSV folder
+## How To Run
 
-Run this command for each dataset folder under `datasets/` (e.g., `devign`, `BADS`, `kaggle_student_code`, `linevul`, `vulfix`):
+1. Activate Python virtual environment.
+2. Preprocess datasets (`utils/train_process.py`) and train risk models (`utils/train_model.py`).
+3. Launch the Streamlit app (`streamlit run app.py`).
+4. Upload files to scan for risks and plagiarism.
 
-```bash
-python -c "from utils.train_process import preprocess_all_csvs_in_folder; preprocess_all_csvs_in_folder('datasets/dataset_folder_name', out_csv='datasets/processed/dataset_folder_name_train.csv')"
-```
+## Explanation for Teachers
 
-For your datasets tree:
+This project combines **traditional static code analysis** (syntax and rule-based checks) with **machine learning risk assessment** leveraging LightGBM trained on large labeled security code datasets.  
+Plagiarism detection uses **state-of-the-art embedding similarity** techniques with FAISS indexes to identify copied code.  
 
-```bash
-python -c "from utils.train_process import preprocess_all_csvs_in_folder; preprocess_all_csvs_in_folder('datasets/BADS', out_csv='datasets/processed/BADS_train.csv')"
+The modular architecture allows preprocessing of multiple real-world datasets, feature extraction, ML model training, and an interactive web interface for easy usage.  
+This work demonstrates practical applications of ML for software security and plagiarism detection in real-world codebases.
 
-python -c "from utils.train_process import preprocess_all_csvs_in_folder; preprocess_all_csvs_in_folder('datasets/devign', out_csv='datasets/processed/devign_train.csv')"
+## Technologies Used
 
-python -c "from utils.train_process import preprocess_all_csvs_in_folder; preprocess_all_csvs_in_folder('datasets/kaggle_student_code', out_csv='datasets/processed/kaggle_student_code_train.csv')"
+- Python 3.10
+- Streamlit  
+- LightGBM, scikit-learn  
+- Pandas, NumPy  
+- FAISS, sentence-transformers  
+- ssdeep for fuzzy hashing  
+- python-magic, pypdf, python-docx  
 
-python -c "from utils.train_process import preprocess_all_csvs_in_folder; preprocess_all_csvs_in_folder('datasets/linevul', out_csv='datasets/processed/linevul_train.csv')"
-
-python -c "from utils.train_process import preprocess_all_csvs_in_folder; preprocess_all_csvs_in_folder('datasets/vulfix', out_csv='datasets/processed/vulfix_train.csv')"
-```
-
-You can repeat these whenever you add or update raw CSVs for that dataset.
-
-***
-
-### Step 3: Train or retrain your LightGBM model on a chosen processed CSV
-
-For example, to train on the `devign` dataset processed CSV:
-
-```bash
-python utils/train_model.py datasets/processed/devign_train.csv
-```
-
-Do the same for any other processed dataset CSV you want to use.
-
-***
-
-### Step 4: Use your app normally
-
-Run your Streamlit app. It will **load the latest trained model from** `models/risk_model.txt` and apply risk scoring during file scans.
-
-```bash
-streamlit run app.py
-```
-
-***
-
-### Notes:
-
-- You run the preprocessing **only once after adding/updating datasets** to generate ML-ready CSVs.
-- You train or retrain **every time your processed data changes** to update the model.
-- You **do NOT need to rerun preprocessing or retrain the model every time** you launch or use the app—only when your underlying training data changes.
-- Store all processed CSVs under `datasets/processed/` to keep things organized.
-
-***
-
-This sequence ensures your ML risk model stays up to date with your datasets, and your app always uses the latest model for analysis.
-
-If you want, I can help you automate batching all dataset preprocessing and training in one script or recommend best practices for versioning and retraining.
-
+---
