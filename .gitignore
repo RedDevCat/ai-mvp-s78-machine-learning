@@ -8,6 +8,7 @@ __pycache__/
 .venv/
 env/
 venv/
+310venv/
 
 # Distribution/build folders
 build/
